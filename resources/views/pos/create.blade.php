@@ -5,37 +5,14 @@
 @section('content')
 
 <h1 class="text-lg font-semibold mb-4">Transaksi Kasir</h1>
-
-<div x-data="{ cart: [], selectedProduct: null,
-
-addToCart(id, name, price) {
-    let item = this.cart.find(item => item.id === id);
-
-    if (item) {
-        item.quantity++;
-    } else {
-        this.cart.push({
-            id: id,
-            name: name,
-            price: price,
-            quantity: 1
-        });
+<div x-data="{
+    cart: [],
+    addToCart(id, name, price) {
+        this.cart.push({ id, name, price });
+    },
+    subtotal() {
+        return this.cart.reduce((sum, item) => sum + item.price, 0);
     }
-
-    this.selectedProduct = id;
-},
-
-removeFromCart(id) {
-    this.cart = this.cart.filter(item => item.id !== id);
-},
-
-subtotal() {
-    return this.cart.reduce(
-        (sum, item) => sum + (item.price * item.quantity),
-        0
-    );
-}
-
 }">
 
 <div class="grid grid-cols-3 gap-4">
