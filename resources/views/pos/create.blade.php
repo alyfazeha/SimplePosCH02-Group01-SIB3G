@@ -3,7 +3,6 @@
 @section('title', 'Kasir')
 
 @section('content')
-
 <h1 class="text-lg font-semibold mb-4">Transaksi Kasir</h1>
 
 <div x-data="{
@@ -56,17 +55,4 @@
         </p>
     </div>
 </div>
-
-<div class="mt-4 border-t pt-3">
-    <template x-for="item in cart" :key="item.id">
-        <p x-text="item.name + ' - Rp ' + item.price"></p>
-    </template>
-
-    <p class="font-semibold mt-2">
-        Subtotal: Rp <span x-text="subtotal()"></span>
-    </p>
-</div>
-
-</div>
-
 @endsection
