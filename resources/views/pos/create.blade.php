@@ -26,7 +26,16 @@
                 class="border rounded-md p-3 cursor-pointer hover:bg-slate-50 transition"
                 @click="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->price }})"
             >
-                <p class="font-medium">{{ $product->name }}</p>
+                <div class="flex justify-between items-start">
+                    <p class="font-medium">{{ $product->name }}</p>
+
+                    {{-- Fitur Badge Stok Menipis milikmu --}}
+                    @if ($product->stock < 10)
+                        <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
+                            Stok Menipis
+                        </span>
+                    @endif
+                </div>
 
                 <p class="text-sm text-slate-500">
                     Rp {{ number_format($product->price) }}
