@@ -2,4 +2,5 @@
     <span class="font-semibold">Simple POS</span>
     <a href="{{ route('pos.create') }}" class="hover:underline">Kasir</a>
     <a href="{{ route('transactions.index') }}" class="hover:underline">Transaksi</a>
+    <a href="{{ route('products.index') }}" class="hover:underline">Produk</a>
 </nav>
