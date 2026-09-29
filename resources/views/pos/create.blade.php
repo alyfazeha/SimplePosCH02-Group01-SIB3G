@@ -62,8 +62,9 @@ subtotal() {
             </p>
         </div>
     @endforeach
-
 </div>
+
+{{ $products->links() }}
 
 <div class="mt-4 border-t pt-3">
 

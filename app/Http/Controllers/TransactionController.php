@@ -10,7 +10,8 @@ class TransactionController extends Controller
 {
     public function create()
     {
-        $products = Product::where('stock', '>', 0)->get();
+        $products = Product::paginate(12);
+
         return view('pos.create', ['products' => $products]);
     }
 
