@@ -18,7 +18,7 @@ class Product extends Model
     {
         return $this->hasMany(TransactionDetail::class);
     }
-}
+
     public function transactions(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -29,4 +29,3 @@ class Product extends Model
         );
     }
 }
-
