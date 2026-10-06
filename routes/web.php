@@ -16,3 +16,8 @@ Route::get('/transactions/{transaction}', [TransactionController::class, 'show']
 
 Route::resource('categories', CategoryController::class)->except('show');
 Route::resource('products', ProductController::class)->except(['show', 'destroy']);
+Route::get('/products/{id}/edit', [ProductController::class, 'edit'])
+    ->name('products.edit');
+
+Route::put('/products/{id}', [ProductController::class, 'update'])
+    ->name('products.update');
