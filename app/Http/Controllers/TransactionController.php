@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\StoreTransactionRequest;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +20,7 @@ class TransactionController extends Controller
     }
 
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreTransactionRequest $request)
     {
         $validated = $request->validated();
         DB::transaction(function () use ($validated) {
