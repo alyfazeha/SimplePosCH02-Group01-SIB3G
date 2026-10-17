@@ -22,8 +22,13 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/pos', [TransactionController::class, 'create'])->name('pos.create');
     Route::post('/pos', [TransactionController::class, 'store'])->name('transactions.store');
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
+    // Halaman transaksi bisa diakses oleh admin dan manager
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    });
+
+    // Halaman produk dan kategori HANYA untuk admin
     Route::middleware('role:admin')->group(function () {
         Route::resource('categories', CategoryController::class)->except('show');
         Route::resource('products', ProductController::class)->except(['show', 'destroy']);
