@@ -8,13 +8,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserHasRole
 {
-    public function handle(Request $request, Closure $next, string $roles): Response
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        // Ubah string roles (misal: "admin,manager") menjadi array
-        $allowedRoles = explode(',', $roles);
-
-        if (! $request->user() || ! in_array($request->user()->role, $allowedRoles)) {
-            abort(403, "Halaman ini hanya untuk peran: {$roles}.");
+        // Cek apakah user sudah login dan rolenya ada di dalam daftar $roles
+        if (! $request->user() || ! in_array($request->user()->role, $roles)) {
+            $allowed = implode(', ', $roles);
+            abort(403, "Halaman ini hanya untuk peran: {$allowed}.");
         }
 
         return $next($request);

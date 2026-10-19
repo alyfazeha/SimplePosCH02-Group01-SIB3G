@@ -8,29 +8,22 @@ use Illuminate\Support\Facades\Hash;
 
 class DemoUserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Seeder untuk Admin
         User::firstOrCreate(
-            ['email' => 'admin@pos.test'], // Kolom untuk pencarian (unik)
-            [
-                'name' => 'Admin Kafe',
-                'role' => 'admin',
-                'password' => Hash::make('password') // Disarankan di-hash
-            ]
+            ['email' => 'admin@pos.test'],
+            ['name' => 'Admin Kafe', 'role' => 'admin', 'password' => Hash::make('password')]
         );
 
-        // Seeder untuk Kasir (dipisah menjadi statement sendiri)
         User::firstOrCreate(
-            ['email' => 'kasir@pos.test'], // Kolom untuk pencarian (unik)
-            [
-                'name' => 'Kasir Kafe',
-                'role' => 'kasir',
-                'password' => Hash::make('password')
-            ]
+            ['email' => 'kasir@pos.test'],
+            ['name' => 'Kasir Kafe', 'role' => 'kasir', 'password' => Hash::make('password')]
+        );
+
+        // Tambahkan akun manager di sini
+        User::firstOrCreate(
+            ['email' => 'manager@pos.test'],
+            ['name' => 'Manager Kafe', 'role' => 'manager', 'password' => Hash::make('password')]
         );
     }
 }
