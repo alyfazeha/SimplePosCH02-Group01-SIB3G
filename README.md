@@ -1,59 +1,54 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Skenario Uji Manual (Manual Testing Scenarios)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Berikut adalah daftar skenario pengujian fungsionalitas sistem berdasarkan hak akses (_Role-Based Access Control_ / RBAC) dan pengelolaan halaman tamu:
 
-## About Laravel
+### 1. Peran: Guest (Tamu / Belum Login)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Deskripsi Skenario:** Menguji pengalihan akses (_redirect_) saat pengguna belum melakukan login ke dalam sistem.
+- **Langkah-langkah:**
+    1. Buka browser dalam mode incognito/private.
+    2. Akses halaman utama URL root (`http://127.0.0.1:8000/`).
+    3. Coba akses halaman manajemen kasir/transaksi secara langsung (`http://127.0.0.1:8000/pos` atau `/transactions`).
+- **Hasil yang Diharapkan:**
+    - Saat mengakses root URL (`/`), sistem secara otomatis mengalihkan (_redirect_) ke halaman informasi / _welcome_ (`/welcome`).
+    - Saat mengakses halaman terproteksi secara langsung, sistem menolak akses dan mengalihkan pengguna ke halaman login (`/login`).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. Peran: Kasir (`kasir@pos.test`)
 
-## Learning Laravel
+- **Deskripsi Skenario:** Menguji hak akses pengguna dengan peran kasir pada halaman POS dan pembatasan halaman manajemen data.
+- **Langkah-langkah:**
+    1. Lakukan login menggunakan akun kasir (`kasir@pos.test` / `password`).
+    2. Akses halaman pembuatan transaksi / POS (`/pos`).
+    3. Lakukan input transaksi penjualan produk dan simpan.
+    4. Coba ketik manual URL untuk mengakses halaman laporan transaksi (`/transactions`) atau manajemen produk (`/products`).
+- **Hasil yang Diharapkan:**
+    - Kasir berhasil mengakses dan menggunakan halaman POS (`/pos`) serta sukses melakukan penyimpanan transaksi.
+    - Kasir ditolak mengakses halaman `/transactions`, `/products`, dan `/categories` dengan kemunculan halaman error **403 Forbidden**.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. Peran: Manager (`manager@pos.test`)
 
-## Laravel Sponsors
+- **Deskripsi Skenario:** Menguji hak akses khusus manager yang diizinkan melihat laporan transaksi tetapi dilarang mengakses manajemen produk.
+- **Langkah-langkah:**
+    1. Lakukan login menggunakan akun manager (`manager@pos.test` / `password`).
+    2. Akses halaman laporan transaksi (`/transactions`).
+    3. Coba akses halaman manajemen produk (`/products`) atau kategori (`/categories`).
+- **Hasil yang Diharapkan:**
+    - Manager berhasil membuka dan melihat data pada halaman laporan transaksi (`/transactions`).
+    - Manager diblokir saat mencoba membuka halaman `/products` atau `/categories` dan menampilkan pesan error **403 Forbidden** (_Halaman ini hanya untuk peran: admin_).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+### 4. Peran: Admin (`admin@pos.test`)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Deskripsi Skenario:** Menguji hak akses penuh administrator terhadap seluruh modul sistem (POS, Transaksi, Produk, dan Kategori).
+- **Langkah-langkah:**
+    1. Lakukan login menggunakan akun admin (`admin@pos.test` / `password`).
+    2. Akses halaman `/pos` untuk membuat transaksi.
+    3. Akses halaman `/transactions` untuk melihat rekap laporan.
+    4. Akses halaman `/products` dan `/categories` untuk mengelola data master produk.
+- **Hasil yang Diharapkan:**
+    - Admin memiliki hak akses penuh ke seluruh menu tanpa mengalami kendala ataupun error 403.
