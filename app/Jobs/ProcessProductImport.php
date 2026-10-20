@@ -2,12 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Imports\ProductsImport;
 use App\Models\ImportError;
-use App\Models\Product;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Excel as ExcelType;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessProductImport implements ShouldQueue
 {
@@ -26,49 +27,28 @@ class ProcessProductImport implements ShouldQueue
         // Idempotent: kalau job di-retry, hapus catatan error percobaan sebelumnya
         ImportError::where('import_id', $this->importId)->delete();
 
-        $lines = file(
-            Storage::path($this->csvPath),
-            FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
-        );
-        $rows = array_map('str_getcsv', $lines);
-        $header = array_shift($rows);
+        $import = new ProductsImport;
 
-        foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2; // baris 1 adalah header
+        // Tipe reader disebut eksplisit: file hasil store() bisa berekstensi .txt
+        Excel::import($import, Storage::path($this->csvPath), null, ExcelType::CSV);
 
-            if (count($row) !== count($header)) {
-                $this->logError($rowNumber, 'Jumlah column tidak sesuai dengan header.');
-                continue;
-            }
-
-            $validator = Validator::make(array_combine($header, $row), [
-                'name' => ['required', 'string'],
-                'category_id' => ['required', 'exists:categories,id'],
-                'price' => ['required', 'integer', 'min:0'],
-            ]);
-
-            if ($validator->fails()) {
-                $this->logError($rowNumber, implode(' ', $validator->errors()->all()));
-                continue;
-            }
-
-            $data = $validator->validated();
-
-            Product::updateOrCreate(
-                ['name' => $data['name'], 'category_id' => $data['category_id']],
-                ['price' => $data['price']],
-            );
+        $errors = [];
+        foreach ($import->failures() as $failure) {
+            $errors[] = [
+                'import_id'  => $this->importId,
+                'row_number' => $failure->row(),
+                'message'    => implode(' ', $failure->errors()),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
         }
+        ImportError::insert($errors); // satu insert; aman walau array kosong
 
         Storage::delete($this->csvPath);
     }
 
-    private function logError(int $rowNumber, string $message): void
+    public function failed(\Throwable $e): void
     {
-        ImportError::create([
-            'import_id' => $this->importId,
-            'row_number' => $rowNumber,
-            'message' => $message,
-        ]);
+        Storage::delete($this->csvPath);
     }
 }

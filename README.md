@@ -70,3 +70,29 @@ Berikut adalah daftar skenario pengujian fungsionalitas sistem berdasarkan hak a
     4. Akses halaman `/products` dan `/categories` untuk mengelola data master produk.
 - **Hasil yang Diharapkan:**
     - Admin memiliki hak akses penuh ke seluruh menu tanpa mengalami kendala ataupun error 403.
+
+
+
+## Proses yang layak dipindah ke queued job: export laporan besar
+
+**Proses:** `ReportController::exportExcel()` dan `exportPdf()`.
+
+**Alasan:**
+1. **Waktu dan memori.** Export satu tahun transaksi (puluhan ribu row) bisa
+   memakan waktu puluhan detik. Selama itu request PHP tertahan dan bisa kena
+   `max_execution_time`. DomPDF juga memuat seluruh dokumen di memori.
+2. **Pengalaman pengguna.** Admin menunggu di depan browser tanpa tahu proses
+   masih berjalan atau sudah macet. Dengan queue, admin langsung dapat pesan
+   "laporan sedang dibuat" dan bisa melanjutkan pekerjaan lain.
+3. **Aman diulang.** Export hanya membaca data dan menulis satu file, sehingga
+   aman dicoba ulang dengan `$tries` dan `$backoff` tanpa efek samping ganda.
+4. **Ketahanan.** Kalau gagal, jejaknya ada di `failed_jobs` dan bisa dijalankan
+   ulang dengan `queue:retry`, tidak hilang begitu saja.
+
+**Yang perlu ditambahkan:** hasil file harus bisa diambil setelah selesai,
+misalnya disimpan ke `storage/app/exports` dan ditampilkan di halaman
+"Unduhan" atau lewat notifikasi. Laravel Excel sudah menyediakan
+`Excel::queue()` untuk menulis file dari job.
+
+**Yang sengaja tidak dipindah:** proses transaksi di kasir (`store()`), karena
+kasir butuh kepastian stok dan struk saat itu juga.

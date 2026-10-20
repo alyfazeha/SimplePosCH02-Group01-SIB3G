@@ -77,6 +77,7 @@ class ReportController extends Controller
                 ->latest()
                 ->limit(50)
                 ->get(),
+            'terlaris' => $this->topProducts($from, $to, $categoryId),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
         ]);
@@ -84,33 +85,28 @@ class ReportController extends Controller
         return $pdf->download('laporan-penjualan.pdf');
     }
 
-    public function importForm(): View
+    public function importForm(Request $request): View
     {
-        $importId = session('last_import_id');
-
         return view('reports.import', [
-            'importErrors' => $importId
-                ? ImportError::where('import_id', $importId)->orderBy('row_number')->get()
+            'importErrors' => $request->query('import')
+                ? ImportError::where('import_id', $request->query('import'))
+                    ->orderBy('row_number')
+                    ->get()
                 : collect(),
         ]);
     }
 
     public function import(Request $request): RedirectResponse
     {
-        $request->validate([
-            'csv' => ['required', 'file', 'mimes:csv,txt'],
-        ]);
+        $request->validate(['csv' => ['required', 'file', 'mimes:csv,txt']]);
 
         $path = $request->file('csv')->store('imports');
         $importId = (string) Str::uuid();
-        session(['last_import_id' => $importId]);
 
         ProcessProductImport::dispatch($path, $importId);
 
-        return back()->with(
-            'success',
-            'Import sedang diproses di background. Refresh halaman ini setelah worker selesai untuk melihat row yang gagal.'
-        );
+        return redirect()->route('import.create', ['import' => $importId])
+            ->with('success', 'Import sedang diproses di background.');
     }
 
     private function resolveDateRange(Request $request): array
@@ -147,6 +143,20 @@ class ReportController extends Controller
             ->join('products', 'products.id', '=', 'transaction_details.product_id')
             ->whereBetween('transactions.created_at', [$from, $to])
             ->where('products.category_id', $categoryId)
-            ->sum('transaction_details.subtotal'); // sesuaikan dengan kolom di tabelmu
+            ->sum('transaction_details.subtotal');
+    }
+
+    private function topProducts($from, $to, ?int $categoryId = null)
+    {
+        return DB::table('transaction_details')
+            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->join('products', 'products.id', '=', 'transaction_details.product_id')
+            ->whereBetween('transactions.created_at', [$from, $to])
+            ->when($categoryId, fn ($q) => $q->where('products.category_id', $categoryId))
+            ->groupBy('products.id', 'products.name')
+            ->selectRaw('products.name, SUM(transaction_details.quantity) as qty, SUM(transaction_details.subtotal) as omzet')
+            ->orderByDesc('qty')
+            ->limit(10)
+            ->get();
     }
 }
