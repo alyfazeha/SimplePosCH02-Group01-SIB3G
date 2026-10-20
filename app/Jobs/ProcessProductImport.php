@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\ImportError;
 use App\Models\Product;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -15,10 +16,16 @@ class ProcessProductImport implements ShouldQueue
     public int $tries = 3;
     public array $backoff = [10, 60];
 
-    public function __construct(private string $csvPath) {}
+    public function __construct(
+        private string $csvPath,
+        private string $importId,
+    ) {}
 
     public function handle(): void
     {
+        // Idempotent: kalau job di-retry, hapus catatan error percobaan sebelumnya
+        ImportError::where('import_id', $this->importId)->delete();
+
         $lines = file(
             Storage::path($this->csvPath),
             FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
@@ -26,8 +33,11 @@ class ProcessProductImport implements ShouldQueue
         $rows = array_map('str_getcsv', $lines);
         $header = array_shift($rows);
 
-        foreach ($rows as $row) {
+        foreach ($rows as $index => $row) {
+            $rowNumber = $index + 2; // baris 1 adalah header
+
             if (count($row) !== count($header)) {
+                $this->logError($rowNumber, 'Jumlah column tidak sesuai dengan header.');
                 continue;
             }
 
@@ -38,6 +48,7 @@ class ProcessProductImport implements ShouldQueue
             ]);
 
             if ($validator->fails()) {
+                $this->logError($rowNumber, implode(' ', $validator->errors()->all()));
                 continue;
             }
 
@@ -50,5 +61,14 @@ class ProcessProductImport implements ShouldQueue
         }
 
         Storage::delete($this->csvPath);
+    }
+
+    private function logError(int $rowNumber, string $message): void
+    {
+        ImportError::create([
+            'import_id' => $this->importId,
+            'row_number' => $rowNumber,
+            'message' => $message,
+        ]);
     }
 }

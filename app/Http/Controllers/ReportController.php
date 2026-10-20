@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SalesReportExport;
 use App\Jobs\ProcessProductImport;
 use App\Models\Category;
+use App\Models\ImportError;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -84,7 +86,13 @@ class ReportController extends Controller
 
     public function importForm(): View
     {
-        return view('reports.import');
+        $importId = session('last_import_id');
+
+        return view('reports.import', [
+            'importErrors' => $importId
+                ? ImportError::where('import_id', $importId)->orderBy('row_number')->get()
+                : collect(),
+        ]);
     }
 
     public function import(Request $request): RedirectResponse
@@ -94,12 +102,14 @@ class ReportController extends Controller
         ]);
 
         $path = $request->file('csv')->store('imports');
+        $importId = (string) Str::uuid();
+        session(['last_import_id' => $importId]);
 
-        ProcessProductImport::dispatch($path);
+        ProcessProductImport::dispatch($path, $importId);
 
         return back()->with(
             'success',
-            'Import sedang diproses di background.'
+            'Import sedang diproses di background. Refresh halaman ini setelah worker selesai untuk melihat row yang gagal.'
         );
     }
 
@@ -137,6 +147,6 @@ class ReportController extends Controller
             ->join('products', 'products.id', '=', 'transaction_details.product_id')
             ->whereBetween('transactions.created_at', [$from, $to])
             ->where('products.category_id', $categoryId)
-            ->sum('transaction_details.subtotal'); // GANTI sesuai kolom di tabelmu
+            ->sum('transaction_details.subtotal'); // sesuaikan dengan kolom di tabelmu
     }
 }
