@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ReportController;
 
 // Pengalihan halaman utama:
 // Jika sudah login akan diarahkan ke /pos, jika belum akan diarahkan ke halaman /welcome
@@ -43,5 +44,24 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::resource('categories', CategoryController::class)->except('show');
         Route::resource('products', ProductController::class)->except(['show', 'destroy']);
+    });
+});
+
+Route::middleware('auth')->group(function () {
+    // Kasir / POS (semua user login)
+    Route::get('/pos', [TransactionController::class, 'create'])->name('pos.create');
+    Route::post('/pos', [TransactionController::class, 'store'])->name('transactions.store');
+
+    // Transaksi (admin dan manager)
+    Route::middleware('role:admin,manager')->group(function () {
+        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    });
+
+    // Produk, kategori, laporan (hanya admin)
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('categories', CategoryController::class)->except('show');
+        Route::resource('products', ProductController::class)->except(['show', 'destroy']);
+
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 });
