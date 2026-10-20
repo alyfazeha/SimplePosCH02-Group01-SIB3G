@@ -2,25 +2,30 @@
 @section('title', 'Laporan Penjualan')
 @section('content')
 <h1 class="text-lg font-semibold mb-4">Laporan Penjualan</h1>
-<form method="GET" action="{{ route('reports.index') }}" class="flex gap-3 items-end
-mb-6">
+<form method="GET" action="{{ route('reports.index') }}" class="flex gap-3 items-end mb-6">
     <label class="block">
         <span class="text-sm font-medium">Dari</span>
-        <input type="date" name="from" value="{{ $from }}" class="mt-1 block border
-rounded-md px-3 py-2 text-sm">
+        <input type="date" name="from" value="{{ $from }}" class="mt-1 block border rounded-md px-3 py-2 text-sm">
     </label>
     <label class="block">
         <span class="text-sm font-medium">Sampai</span>
-        <input type="date" name="to" value="{{ $to }}" class="mt-1 block border
-rounded-md px-3 py-2 text-sm">
+        <input type="date" name="to" value="{{ $to }}" class="mt-1 block border rounded-md px-3 py-2 text-sm">
     </label>
-    <button type="submit" class="bg-slate-900 text-white px-4 py-2 rounded-md
-text-sm">Filter</button>
-    <a href="{{ route('reports.export.csv', ['from' => $from, 'to' => $to]) }}"
+    <label class="block">
+        <span class="text-sm font-medium">Kategori</span>
+        <select name="category_id" class="mt-1 block border rounded-md px-3 py-2 text-sm">
+            <option value="">Semua</option>
+            @foreach ($categories as $c)
+                <option value="{{ $c->id }}" @selected($categoryId == $c->id)>{{ $c->name }}</option>
+            @endforeach
+        </select>
+    </label>
+    <button type="submit" class="bg-slate-900 text-white px-4 py-2 rounded-md text-sm">Filter</button>
+    <a href="{{ route('reports.export.csv', ['from' => $from, 'to' => $to, 'category_id' => $categoryId]) }}"
         class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm">Export CSV</a>
-    <a href="{{ route('reports.export.xlsx', ['from' => $from, 'to' => $to]) }}"
+    <a href="{{ route('reports.export.xlsx', ['from' => $from, 'to' => $to, 'category_id' => $categoryId]) }}"
         class="bg-green-600 text-white px-4 py-2 rounded-md text-sm">Export Excel</a>
-    <a href="{{ route('reports.export.pdf', ['from' => $from, 'to' => $to]) }}"
+    <a href="{{ route('reports.export.pdf', ['from' => $from, 'to' => $to, 'category_id' => $categoryId]) }}"
         class="bg-red-600 text-white px-4 py-2 rounded-md text-sm">Export PDF</a>
 </form>
 <div class="bg-white border rounded-md p-4 max-w-sm">
