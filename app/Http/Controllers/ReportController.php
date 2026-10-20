@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
@@ -77,7 +78,7 @@ class ReportController extends Controller
                 ->latest()
                 ->limit(50)
                 ->get(),
-            'terlaris' => $this->topProducts($from, $to, $categoryId),
+            'topProducts' => $this->topProducts($from, $to, $categoryId),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
         ]);
@@ -146,17 +147,17 @@ class ReportController extends Controller
             ->sum('transaction_details.subtotal');
     }
 
-    private function topProducts($from, $to, ?int $categoryId = null)
-    {
-        return DB::table('transaction_details')
-            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
-            ->join('products', 'products.id', '=', 'transaction_details.product_id')
-            ->whereBetween('transactions.created_at', [$from, $to])
-            ->when($categoryId, fn ($q) => $q->where('products.category_id', $categoryId))
-            ->groupBy('products.id', 'products.name')
-            ->selectRaw('products.name, SUM(transaction_details.quantity) as qty, SUM(transaction_details.subtotal) as omzet')
-            ->orderByDesc('qty')
-            ->limit(10)
-            ->get();
-    }
+private function topProducts($from, $to, ?int $categoryId = null, int $limit = 10): Collection
+{
+    return DB::table('transaction_details')
+        ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+        ->join('products', 'products.id', '=', 'transaction_details.product_id')
+        ->whereBetween('transactions.created_at', [$from, $to])
+        ->when($categoryId, fn ($q) => $q->where('products.category_id', $categoryId))
+        ->groupBy('products.id', 'products.name')
+        ->selectRaw('products.name, SUM(transaction_details.qty) as total_terjual')
+        ->orderByDesc('total_terjual')
+        ->limit($limit)
+        ->get();
+}
 }
