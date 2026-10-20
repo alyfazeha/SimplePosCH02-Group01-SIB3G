@@ -41,8 +41,8 @@
 <body>
     <h1>Laporan Penjualan</h1>
     <p>Periode {{ $from }} s.d. {{ $to }}</p>
-    <p>Total penjualan: <strong>Rp {{ number_format($totalPenjualan) }}</strong> dari {{
-    $jumlahTransaksi }} transaksi</p>
+    <p>Total penjualan: <strong>Rp {{ number_format($totalPenjualan) }}</strong> dari {{ $jumlahTransaksi }} transaksi</p>
+
     <p>50 transaksi terbaru pada periode ini:</p>
     <table>
         <thead>
@@ -64,6 +64,32 @@
             @endforeach
         </tbody>
     </table>
+
+    <h1 style="margin-top: 24px;">Produk Terlaris</h1>
+    <p>10 produk dengan jumlah terjual terbanyak pada periode ini:</p>
+
+    @if ($topProducts->isEmpty())
+    <p>Tidak ada penjualan pada periode ini.</p>
+    @else
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Produk</th>
+                <th class="right">Terjual</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($topProducts as $i => $p)
+            <tr>
+                <td>{{ $i + 1 }}</td>
+                <td>{{ $p->name }}</td>
+                <td class="right">{{ number_format($p->total_terjual) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
 </body>
 
 </html>
