@@ -39,11 +39,32 @@ paths:
                   message:
                     type: string
 
+
   /api/products:
     get:
       summary: Ambil daftar produk
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Nomor halaman yang ingin ditampilkan.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: per_page
+          in: query
+          required: false
+          description: Jumlah produk per halaman, minimal 1 dan maksimal 100.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+
       responses:
         '200':
           description: Daftar produk
@@ -68,6 +89,7 @@ paths:
 
         '401':
           description: Token tidak ada atau tidak valid
+
 
   /api/transactions:
     post:
