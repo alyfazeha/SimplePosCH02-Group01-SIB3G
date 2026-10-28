@@ -24,7 +24,7 @@ class ProductController extends Controller
     $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('q'), fn ($query) => $query->where('name', 'like',
     '%'.$request->input('q').'%'))
-            >orderBy(ltrim($sort, '-'), $direction)
+            ->orderBy(ltrim($sort, '-'), $direction)
             ->paginate($request->integer('per_page', 15))
             ->withQueryString();
 
