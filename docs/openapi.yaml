@@ -1,3 +1,4 @@
+
 openapi: 3.0.0
 
 info:
@@ -5,17 +6,22 @@ info:
   version: 1.0.0
 
 paths:
-  /api/login:
+  /api/v1/login:
     post:
       summary: Login dan dapatkan token
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - email
+                - password
               properties:
                 email:
                   type: string
+                  format: email
                 password:
                   type: string
       responses:
@@ -28,7 +34,6 @@ paths:
                 properties:
                   token:
                     type: string
-
         '401':
           description: Kredensial tidak valid
           content:
@@ -39,8 +44,18 @@ paths:
                   message:
                     type: string
 
+  /api/v1/logout:
+    post:
+      summary: Logout dan mencabut token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout berhasil
+        '401':
+          description: Token tidak ada atau tidak valid
 
-  /api/products:
+  /api/v1/products:
     get:
       summary: Ambil daftar produk
       security:
@@ -54,7 +69,6 @@ paths:
             type: integer
             minimum: 1
             default: 1
-
         - name: per_page
           in: query
           required: false
@@ -64,7 +78,6 @@ paths:
             minimum: 1
             maximum: 100
             default: 15
-
       responses:
         '200':
           description: Daftar produk
@@ -86,31 +99,62 @@ paths:
                           type: integer
                         category:
                           type: string
-
         '401':
           description: Token tidak ada atau tidak valid
 
+  /api/v1/categories:
+    get:
+      summary: Ambil daftar kategori
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Daftar kategori berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+        '401':
+          description: Token tidak ada atau tidak valid
 
-  /api/transactions:
+  /api/v1/transactions:
     post:
       summary: Buat transaksi baru
       security:
         - bearerAuth: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - items
               properties:
                 items:
                   type: array
+                  minItems: 1
                   items:
                     type: object
+                    required:
+                      - product_id
+                      - qty
                     properties:
                       product_id:
                         type: integer
                       qty:
                         type: integer
+                        minimum: 1
       responses:
         '201':
           description: Transaksi berhasil disimpan
@@ -126,10 +170,8 @@ paths:
                         type: integer
                       total:
                         type: integer
-
         '401':
           description: Token tidak ada atau tidak valid
-
         '422':
           description: Input tidak valid, misalnya product_id tidak ditemukan
 
@@ -138,3 +180,4 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: Sanctum token
